@@ -1,0 +1,20 @@
+# API trong Docker + MySQL đã có sẵn trên máy (cùng DB khi chạy spring-boot:run local).
+# Chạy: docker compose -f docker-compose.host-db.yml up -d --build
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartbanking-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8081}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://${HOST_MYSQL_HOST:-host.docker.internal}:${HOST_MYSQL_PORT:-3306}/smart_banking?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${HOST_MYSQL_USER:-root}
+      SPRING_DATASOURCE_PASSWORD: ${HOST_MYSQL_PASSWORD:-31082002}
+      JWT_SECRET: ${JWT_SECRET:-doi-chuoi-nay-thanh-mot-chuoi-ngau-nhien-dai-it-nhat-32-ky-tu}
+      APP_FE_BASE_URL: ${APP_FE_BASE_URL:-http://localhost:5500}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

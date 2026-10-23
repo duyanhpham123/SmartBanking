@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --sb-navy: #0c1a2e;
+  --sb-navy-light: #132337;
+  --sb-primary: #2563eb;
+  --sb-primary-hover: #1d4ed8;
+  --sb-bg: #eef2f7;
+  --sb-card: #ffffff;
+  --sb-text: #0f172a;
+  --sb-text-muted: #64748b;
+  --sb-border: #e2e8f0;
+  --sb-success: #16a34a;
+  --sb-success-bg: #dcfce7;
+  --sb-danger: #dc2626;
+  --sb-danger-bg: #fee2e2;
+  --sb-radius: 12px;
+  --sb-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+  --sidebar-width: 240px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  color: var(--sb-text);
+  background: var(--sb-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--sb-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+}
