@@ -23,6 +23,7 @@ import {
 } from '../../utils/adminDisplay'
 
 export { AdminUsersPage } from './AdminUsersPage'
+export { AdminUserDetailPage } from './AdminUserDetailPage'
 export { AdminAccountsPage } from './AdminAccountsPage'
 export { AdminTransactionsPage } from './AdminTransactionsPage'
 export { AdminStatsPage } from './AdminStatsPage'

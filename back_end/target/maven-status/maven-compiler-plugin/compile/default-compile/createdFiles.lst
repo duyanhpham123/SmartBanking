@@ -1,1 +1,12 @@
+project\smartbanking\model\CustomerProfile.class
+project\smartbanking\repository\CustomerProfileRepository.class
+project\smartbanking\mapper\CustomerProfileMapper.class
+project\smartbanking\dto\response\CustomerProfileResponse.class
+project\smartbanking\dto\request\RejectKycRequest.class
+project\smartbanking\model\enums\IdDocumentType.class
 project\smartbanking\service\NotificationService$1.class
+project\smartbanking\service\CustomerProfileService$1.class
+project\smartbanking\dto\request\UpdateKycRequest.class
+project\smartbanking\model\enums\KycStatus.class
+project\smartbanking\model\enums\IncomeRange.class
+project\smartbanking\service\CustomerProfileService.class

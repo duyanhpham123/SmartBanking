@@ -8,7 +8,7 @@ export {
   renameAccount,
 } from './accounts'
 export { fetchDashboardSummary, fetchDashboardChart, fetchDashboardRecentTransactions } from './dashboard'
-export { fetchMyProfile, updateMyProfile, changeMyPassword } from './users'
+export { fetchMyProfile, updateMyProfile, changeMyPassword, fetchMyKyc, submitMyKyc } from './users'
 export {
   depositTransaction,
   withdrawTransaction,

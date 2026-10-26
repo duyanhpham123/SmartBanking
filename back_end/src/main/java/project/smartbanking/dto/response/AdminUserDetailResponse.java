@@ -4,5 +4,7 @@ import java.util.List;
 
 public record AdminUserDetailResponse(
         UserResponse user,
-        List<AccountResponse> accounts) {
+        CustomerProfileResponse profile,
+        List<AccountResponse> accounts,
+        List<AuditLogResponse> recentActivities) {
 }

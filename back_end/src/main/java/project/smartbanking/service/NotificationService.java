@@ -130,6 +130,19 @@ public class NotificationService {
         }
     }
 
+    // ===================== THÔNG BÁO BẢO MẬT / HỒ SƠ =====================
+    // Chạy chung transaction với nghiệp vụ gọi nó (vd: admin duyệt hồ sơ)
+    @Transactional
+    public void notifySecurity(Long userId, String title, String message) {
+        Notification n = new Notification();
+        n.setUser(userRepository.getReferenceById(userId));
+        n.setTitle(title);
+        n.setMessage(message);
+        n.setNotificationType(NotificationType.SECURITY);
+        n.setRead(false);
+        notificationRepository.save(n);
+    }
+
     // ===================== HÀM PHỤ =====================
     private void create(Long userId, Long transactionId, String title, String message) {
         Notification n = new Notification();

@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: project.smartbanking.service.OtpServiceTest
 -------------------------------------------------------------------------------
-Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.068 s -- in project.smartbanking.service.OtpServiceTest
+Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.069 s -- in project.smartbanking.service.OtpServiceTest
