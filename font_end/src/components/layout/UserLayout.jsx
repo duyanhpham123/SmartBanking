@@ -49,13 +49,18 @@ export function UserLayout() {
               <FiBell />
               {unread > 0 && <span className="header-bell-dot" />}
             </button>
-            <div className="header-user">
+            <button
+              type="button"
+              className="header-user"
+              onClick={() => navigate('/profile')}
+              title="Hồ sơ cá nhân"
+            >
               <img src={avatarUrl} alt="" />
               <div className="header-user-meta">
                 <div className="header-user-name">{user?.name ?? 'Người dùng'}</div>
                 <div className="header-user-role">{user?.role ?? 'USER'}</div>
               </div>
-            </div>
+            </button>
           </div>
         </header>
         <main className="page-content">

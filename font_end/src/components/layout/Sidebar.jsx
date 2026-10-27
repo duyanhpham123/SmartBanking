@@ -9,6 +9,7 @@ import {
   FiClock,
   FiBell,
   FiSettings,
+  FiUser,
 } from 'react-icons/fi'
 
 const userLinks = [
@@ -20,12 +21,13 @@ const userLinks = [
   { to: '/bills', icon: FiFileText, label: 'Thanh toán hóa đơn' },
   { to: '/history', icon: FiClock, label: 'Lịch sử giao dịch' },
   { to: '/notifications', icon: FiBell, label: 'Thông báo' },
+  { to: '/profile', icon: FiUser, label: 'Hồ sơ cá nhân' },
   { to: '/settings', icon: FiSettings, label: 'Cài đặt' },
 ]
 
 const adminLinks = [
   { to: '/admin', icon: FiHome, label: 'Tổng quan', end: true },
-  { to: '/admin/users', icon: FiCreditCard, label: 'Quản lý người dùng' },
+  { to: '/admin/users', icon: FiUser, label: 'Quản lý khách hàng' },
   { to: '/admin/accounts', icon: FiCreditCard, label: 'Quản lý tài khoản' },
   { to: '/admin/transactions', icon: FiRepeat, label: 'Quản lý giao dịch' },
   { to: '/admin/stats', icon: FiClock, label: 'Thống kê' },
