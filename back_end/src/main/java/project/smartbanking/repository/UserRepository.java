@@ -10,7 +10,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import project.smartbanking.model.User;
-import project.smartbanking.model.enums.KycStatus;
 import project.smartbanking.model.enums.UserStatus;
 
 @Repository
@@ -34,15 +33,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByPhone(String phone);
 
-    // status, kycStatus, keyword có thể null = không lọc. keyword đã xử lý sẵn dạng "%abc%" (chữ thường).
-    // Người dùng chưa có dòng trong customer_profiles được tính là NOT_SUBMITTED.
+    // status, keyword có thể null = không lọc. keyword đã xử lý sẵn dạng "%abc%" (chữ thường).
     @Query("""
             select u from User u
             where (:status is null or u.status = :status)
-              and (:kycStatus is null
-                   or exists (select p.id from CustomerProfile p where p.user = u and p.kycStatus = :kycStatus)
-                   or (:kycStatus = project.smartbanking.model.enums.KycStatus.NOT_SUBMITTED
-                       and not exists (select p.id from CustomerProfile p where p.user = u)))
               and (:keyword is null
                    or lower(u.username) like :keyword
                    or lower(u.email) like :keyword
@@ -50,7 +44,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
                    or u.phone like :keyword)
             """)
     Page<User> search(@Param("status") UserStatus status,
-                      @Param("kycStatus") KycStatus kycStatus,
                       @Param("keyword") String keyword,
                       Pageable pageable);
 }

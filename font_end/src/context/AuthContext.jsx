@@ -69,13 +69,6 @@ export function AuthProvider({ children }) {
     return mapped
   }, [])
 
-  // Đồng bộ lại thông tin hiển thị (tên, email...) sau khi người dùng sửa hồ sơ
-  const updateUser = useCallback((apiUser) => {
-    const mapped = mapUserFromApi(apiUser)
-    setUser(mapped)
-    persistUser(mapped, Boolean(localStorage.getItem(USER_KEY)))
-  }, [])
-
   const value = useMemo(
     () => ({
       user,
@@ -83,9 +76,8 @@ export function AuthProvider({ children }) {
       isAuthenticated: Boolean(user && getStoredToken()),
       login,
       logout,
-      updateUser,
     }),
-    [user, isAdmin, login, logout, updateUser],
+    [user, isAdmin, login, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

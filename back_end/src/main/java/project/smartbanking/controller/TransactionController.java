@@ -3,7 +3,6 @@ package project.smartbanking.controller;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 
-import org.jspecify.annotations.NonNull;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -49,14 +48,14 @@ public class TransactionController {
     }
 
     @PostMapping("/deposit")
-    public ResponseEntity<TransactionResponse> deposit(@AuthenticationPrincipal  UserPrincipal principal,
+    public ResponseEntity<TransactionResponse> deposit(@AuthenticationPrincipal UserPrincipal principal,
                                                        @Valid @RequestBody DepositRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(transactionService.deposit(principal.getId(), request));
     }
 
     @PostMapping("/withdraw")
-    public ResponseEntity<TransactionResponse> withdraw(@AuthenticationPrincipal  UserPrincipal principal,
+    public ResponseEntity<TransactionResponse> withdraw(@AuthenticationPrincipal UserPrincipal principal,
                                                         @Valid @RequestBody WithdrawRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(transactionService.withdraw(principal.getId(), request));
@@ -65,7 +64,7 @@ public class TransactionController {
     // Header Idempotency-Key bắt buộc. Gửi lại cùng mã thì nhận lại kết quả cũ, không chuyển lần nữa.
     @PostMapping("/transfer")
     public ResponseEntity<TransactionResponse> transfer(
-            @AuthenticationPrincipal  UserPrincipal principal,
+            @AuthenticationPrincipal UserPrincipal principal,
             @RequestHeader("Idempotency-Key") String idempotencyKey,
             @Valid @RequestBody TransferRequest request) {
 

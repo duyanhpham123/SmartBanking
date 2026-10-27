@@ -16,26 +16,22 @@ import project.smartbanking.dto.response.AccountResponse;
 import project.smartbanking.dto.response.AdminAccountResponse;
 import project.smartbanking.dto.response.AdminTransactionResponse;
 import project.smartbanking.dto.response.AdminUserDetailResponse;
-import project.smartbanking.dto.response.AuditLogResponse;
 import project.smartbanking.dto.response.PageResponse;
 import project.smartbanking.dto.response.UserResponse;
 import project.smartbanking.exception.BadRequestException;
 import project.smartbanking.exception.ResourceNotFoundException;
 import project.smartbanking.mapper.AccountMapper;
 import project.smartbanking.mapper.AdminMapper;
-import project.smartbanking.mapper.AuditLogMapper;
 import project.smartbanking.mapper.UserMapper;
 import project.smartbanking.model.Account;
 import project.smartbanking.model.BankTransaction;
 import project.smartbanking.model.User;
 import project.smartbanking.model.enums.AccountStatus;
 import project.smartbanking.model.enums.AccountType;
-import project.smartbanking.model.enums.KycStatus;
 import project.smartbanking.model.enums.TransactionStatus;
 import project.smartbanking.model.enums.TransactionType;
 import project.smartbanking.model.enums.UserStatus;
 import project.smartbanking.repository.AccountRepository;
-import project.smartbanking.repository.AuditLogRepository;
 import project.smartbanking.repository.RefreshTokenRepository;
 import project.smartbanking.repository.TransactionRepository;
 import project.smartbanking.repository.UserRepository;
@@ -47,41 +43,31 @@ public class AdminService {
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final RefreshTokenRepository refreshTokenRepository;
-    private final AuditLogRepository auditLogRepository;
     private final UserMapper userMapper;
     private final AccountMapper accountMapper;
     private final AdminMapper adminMapper;
-    private final AuditLogMapper auditLogMapper;
-    private final CustomerProfileService customerProfileService;
 
     public AdminService(UserRepository userRepository,
                         AccountRepository accountRepository,
                         TransactionRepository transactionRepository,
                         RefreshTokenRepository refreshTokenRepository,
-                        AuditLogRepository auditLogRepository,
                         UserMapper userMapper,
                         AccountMapper accountMapper,
-                        AdminMapper adminMapper,
-                        AuditLogMapper auditLogMapper,
-                        CustomerProfileService customerProfileService) {
+                        AdminMapper adminMapper) {
         this.userRepository = userRepository;
         this.accountRepository = accountRepository;
         this.transactionRepository = transactionRepository;
         this.refreshTokenRepository = refreshTokenRepository;
-        this.auditLogRepository = auditLogRepository;
         this.userMapper = userMapper;
         this.accountMapper = accountMapper;
         this.adminMapper = adminMapper;
-        this.auditLogMapper = auditLogMapper;
-        this.customerProfileService = customerProfileService;
     }
 
     // ===================== NGƯỜI DÙNG =====================
 
     @Transactional(readOnly = true)
-    public PageResponse<UserResponse> getUsers(UserStatus status, KycStatus kycStatus, String keyword,
-                                               int page, int size) {
-        Page<User> result = userRepository.search(status, kycStatus, like(keyword), pageable(page, size));
+    public PageResponse<UserResponse> getUsers(UserStatus status, String keyword, int page, int size) {
+        Page<User> result = userRepository.search(status, like(keyword), pageable(page, size));
         return PageResponse.from(result.map(userMapper::toResponse));
     }
 
@@ -92,15 +78,7 @@ public class AdminService {
                 .sorted(Comparator.comparing(Account::getId))
                 .map(accountMapper::toResponse)
                 .toList();
-        // 10 hoạt động gần nhất (đăng nhập, giao dịch, đổi mật khẩu...) kèm IP để phát hiện bất thường
-        List<AuditLogResponse> activities = auditLogRepository.findByUserId(userId, pageable(0, 10))
-                .map(auditLogMapper::toResponse)
-                .getContent();
-        return new AdminUserDetailResponse(
-                userMapper.toResponse(user),
-                customerProfileService.getProfileForAdmin(userId),
-                accounts,
-                activities);
+        return new AdminUserDetailResponse(userMapper.toResponse(user), accounts);
     }
 
     @Transactional

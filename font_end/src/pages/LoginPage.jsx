@@ -80,7 +80,7 @@ export function LoginPage() {
         </Link>
         <hr className="login-divider" />
         <p className="login-register">
-          Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
+          Chưa có tài khoản? <Link to="#">Đăng ký ngay</Link>
         </p>
       </div>
 

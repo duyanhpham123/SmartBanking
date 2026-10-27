@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { fetchAdminUsers, lockAdminUser, unlockAdminUser } from '../../api/admin'
 import { PageHeader } from '../../components/ui/FormBits'
 import { getApiErrorMessage, statusBadgeClass, userStatusLabel } from '../../utils/adminDisplay'
-import { KYC_STATUS_OPTIONS } from '../../utils/profileDisplay'
 import { AdminPagination } from './AdminPagination'
 
 export function AdminUsersPage() {
@@ -13,24 +11,18 @@ export function AdminUsersPage() {
   const [loading, setLoading] = useState(true)
   const [keyword, setKeyword] = useState('')
   const [search, setSearch] = useState('')
-  const [kycStatus, setKycStatus] = useState('')
 
   const load = useCallback(async () => {
     try {
       setLoading(true)
-      const result = await fetchAdminUsers({
-        keyword: search || undefined,
-        kycStatus: kycStatus || undefined,
-        page,
-        size: 15,
-      })
+      const result = await fetchAdminUsers({ keyword: search || undefined, page, size: 15 })
       setData(result)
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Không tải được danh sách người dùng'))
     } finally {
       setLoading(false)
     }
-  }, [page, search, kycStatus])
+  }, [page, search])
 
   useEffect(() => {
     load()
@@ -53,9 +45,9 @@ export function AdminUsersPage() {
 
   return (
     <div className="page-card">
-      <PageHeader title="Quản lý khách hàng" />
+      <PageHeader title="Quản lý người dùng" />
       <form
-        style={{ marginBottom: '1rem', maxWidth: 720, display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}
+        style={{ marginBottom: '1rem', maxWidth: 480, display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}
         onSubmit={(e) => {
           e.preventDefault()
           setPage(0)
@@ -67,23 +59,6 @@ export function AdminUsersPage() {
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
         />
-        <select
-          className="form-input"
-          style={{ maxWidth: 200 }}
-          value={kycStatus}
-          aria-label="Lọc theo trạng thái eKYC"
-          onChange={(e) => {
-            setPage(0)
-            setKycStatus(e.target.value)
-          }}
-        >
-          <option value="">eKYC: Tất cả</option>
-          {KYC_STATUS_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              eKYC: {o.label}
-            </option>
-          ))}
-        </select>
         <button type="submit" className="btn-primary" style={{ maxWidth: 120 }}>
           Tìm
         </button>
@@ -117,19 +92,14 @@ export function AdminUsersPage() {
                   <tr key={user.id}>
                     <td>{user.id}</td>
                     <td>{user.username}</td>
-                    <td>
-                      <Link to={`/admin/users/${user.id}`}>{user.fullName}</Link>
-                    </td>
+                    <td>{user.fullName}</td>
                     <td>{user.email ?? '—'}</td>
                     <td>
                       <span className={`status-badge ${statusBadgeClass(user.status)}`}>
                         {userStatusLabel(user.status)}
                       </span>
                     </td>
-                    <td style={{ display: 'flex', gap: '0.75rem' }}>
-                      <Link to={`/admin/users/${user.id}`} className="back-link">
-                        Chi tiết
-                      </Link>
+                    <td>
                       {user.status !== 'DELETED' && (
                         <button type="button" className="back-link" onClick={() => toggleLock(user)}>
                           {user.status === 'LOCKED' ? 'Mở khóa' : 'Khóa'}

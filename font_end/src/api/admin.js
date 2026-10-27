@@ -20,25 +20,10 @@ export async function fetchAdminChart(days = 7, currency = 'VND') {
   return data
 }
 
-export async function fetchAdminUsers({ status, kycStatus, keyword, page = 0, size = 20 } = {}) {
+export async function fetchAdminUsers({ status, keyword, page = 0, size = 20 } = {}) {
   const { data } = await apiClient.get('/admin/users', {
-    params: { status, kycStatus, keyword, page, size },
+    params: { status, keyword, page, size },
   })
-  return data
-}
-
-export async function fetchAdminUser(id) {
-  const { data } = await apiClient.get(`/admin/users/${id}`)
-  return data
-}
-
-export async function verifyAdminUserKyc(id) {
-  const { data } = await apiClient.put(`/admin/users/${id}/kyc/verify`)
-  return data
-}
-
-export async function rejectAdminUserKyc(id, note) {
-  const { data } = await apiClient.put(`/admin/users/${id}/kyc/reject`, { note })
   return data
 }
 

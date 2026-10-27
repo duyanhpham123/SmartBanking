@@ -122,29 +122,3 @@ export function AmountInput({ value, onChange, placeholder = 'Nhập số tiền
     </div>
   )
 }
-
-export function Field({ label, hint, children }) {
-  return (
-    <div className="form-field">
-      <label>
-        {label}
-        {hint && <span className="field-hint">{hint}</span>}
-      </label>
-      {children}
-    </div>
-  )
-}
-
-// rows: [[nhãn, giá trị], ...] — hiển thị thông tin chỉ đọc dạng 2 cột
-export function InfoList({ rows }) {
-  return (
-    <dl className="info-list">
-      {rows.map(([label, value]) => (
-        <div key={label} className="info-row">
-          <dt>{label}</dt>
-          <dd>{value || '—'}</dd>
-        </div>
-      ))}
-    </dl>
-  )
-}

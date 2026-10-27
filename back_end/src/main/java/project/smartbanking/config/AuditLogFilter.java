@@ -37,7 +37,7 @@ public class AuditLogFilter extends OncePerRequestFilter {
     // Tên trường (viết thường) mà giá trị luôn bị che trước khi lưu
     private static final Set<String> SENSITIVE_KEYS = Set.of(
             "password", "currentpassword", "newpassword", "otp", "code",
-            "token", "accesstoken", "refreshtoken", "idnumber");
+            "token", "accesstoken", "refreshtoken");
 
     private record Rule(String method, Pattern path, String action, String entityType, String label) {
         static Rule of(String method, String regex, String action, String entityType, String label) {
@@ -54,7 +54,6 @@ public class AuditLogFilter extends OncePerRequestFilter {
             Rule.of("POST", "^/api/v1/auth/reset-password$", "RESET_PASSWORD", "USER", "Đặt lại mật khẩu"),
             Rule.of("PUT", "^/api/v1/users/me$", "UPDATE_PROFILE", "USER", "Cập nhật hồ sơ"),
             Rule.of("PUT", "^/api/v1/users/me/password$", "CHANGE_PASSWORD", "USER", "Đổi mật khẩu"),
-            Rule.of("PUT", "^/api/v1/users/me/kyc$", "SUBMIT_KYC", "USER", "Gửi hồ sơ định danh"),
             Rule.of("POST", "^/api/v1/accounts$", "CREATE_ACCOUNT", "ACCOUNT", "Mở tài khoản ngân hàng"),
             Rule.of("PUT", "^/api/v1/accounts/(\\d+)/name$", "RENAME_ACCOUNT", "ACCOUNT", "Đổi tên tài khoản"),
             Rule.of("POST", "^/api/v1/transactions/deposit$", "DEPOSIT", "TRANSACTION", "Nạp tiền"),
@@ -65,8 +64,6 @@ public class AuditLogFilter extends OncePerRequestFilter {
             Rule.of("POST", "^/api/v1/otp/verify$", "OTP_VERIFY", "OTP", "Kiểm tra mã OTP"),
             Rule.of("PUT", "^/api/v1/admin/users/(\\d+)/lock$", "ADMIN_LOCK_USER", "USER", "Khóa người dùng"),
             Rule.of("PUT", "^/api/v1/admin/users/(\\d+)/unlock$", "ADMIN_UNLOCK_USER", "USER", "Mở khóa người dùng"),
-            Rule.of("PUT", "^/api/v1/admin/users/(\\d+)/kyc/verify$", "ADMIN_VERIFY_KYC", "USER", "Duyệt hồ sơ định danh"),
-            Rule.of("PUT", "^/api/v1/admin/users/(\\d+)/kyc/reject$", "ADMIN_REJECT_KYC", "USER", "Từ chối hồ sơ định danh"),
             Rule.of("PUT", "^/api/v1/admin/accounts/(\\d+)/lock$", "ADMIN_LOCK_ACCOUNT", "ACCOUNT", "Khóa tài khoản ngân hàng"),
             Rule.of("PUT", "^/api/v1/admin/accounts/(\\d+)/unlock$", "ADMIN_UNLOCK_ACCOUNT", "ACCOUNT", "Mở khóa tài khoản ngân hàng"));
 
