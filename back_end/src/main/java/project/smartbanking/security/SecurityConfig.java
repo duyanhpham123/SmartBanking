@@ -74,7 +74,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(feBaseUrl, "http://localhost:5173", "http://localhost:3000"));
+        // Vite tự nhảy sang 5174, 5175... khi 5173 bận, nên cho phép mọi cổng localhost lúc phát triển
+        config.setAllowedOriginPatterns(List.of(feBaseUrl, "http://localhost:[*]", "http://127.0.0.1:[*]"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Idempotency-Key"));
         config.setExposedHeaders(List.of("Idempotent-Replayed"));
