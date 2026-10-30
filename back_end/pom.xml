@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Maven POM — dự án Shop 
+  Maven POM — dự án SmartBank 
   Đóng gói WAR để deploy Tomcat ngoài hoặc chạy embedded qua Spring Boot.
   Java 21, Spring Boot 3.5.x (snapshot repo).
 -->
