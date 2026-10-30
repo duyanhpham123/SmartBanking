@@ -22,7 +22,14 @@ public class JwtService {
 
     public JwtService(@Value("${app.jwt.secret}") String secret,
                       @Value("${app.jwt.access-expiration-ms}") long accessExpirationMs) {
-        // Khóa phải dài ít nhất 32 byte, ngắn hơn thư viện sẽ báo lỗi khi khởi động
+        // Khóa phải dài ít nhất 32 byte. Chuỗi mẫu trong .env.example ai cũng biết, dùng nó thì
+        // bất kỳ ai cũng tự ký được token quyền ADMIN, nên từ chối khởi động.
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("Chưa cấu hình app.jwt.secret (biến môi trường JWT_SECRET)");
+        }
+        if (secret.length() < 32 || secret.startsWith("doi-chuoi-nay")) {
+            throw new IllegalStateException("app.jwt.secret phải là chuỗi ngẫu nhiên riêng, dài tối thiểu 32 ký tự");
+        }
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.accessExpirationMs = accessExpirationMs;
     }

@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from 'react-router-dom'
 import { FiBell, FiSearch } from 'react-icons/fi'
 import { fetchUnreadNotificationCount } from '../../api/notifications'
 import { useAuth } from '../../context/AuthContext'
+import { initials } from '../../utils/profileDisplay'
 import { UserSidebar } from './Sidebar'
 
 export function UserLayout() {
@@ -28,7 +29,6 @@ export function UserLayout() {
     }
   }, [])
 
-  const avatarUrl = `https://i.pravatar.cc/100?u=${encodeURIComponent(user?.email ?? user?.id ?? 'user')}`
 
   return (
     <div className="app-shell">
@@ -55,7 +55,10 @@ export function UserLayout() {
               onClick={() => navigate('/profile')}
               title="Hồ sơ cá nhân"
             >
-              <img src={avatarUrl} alt="" />
+              {/* Avatar chữ cái đầu: không gửi email khách hàng sang dịch vụ ảnh bên ngoài */}
+              <span className="header-avatar" aria-hidden="true">
+                {initials(user?.name)}
+              </span>
               <div className="header-user-meta">
                 <div className="header-user-name">{user?.name ?? 'Người dùng'}</div>
                 <div className="header-user-role">{user?.role ?? 'USER'}</div>

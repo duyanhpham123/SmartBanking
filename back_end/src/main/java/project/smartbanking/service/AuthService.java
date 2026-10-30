@@ -7,6 +7,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -55,6 +56,7 @@ public class AuthService {
     private final UserMapper userMapper;
     private final AccountService accountService;
     private final OtpService otpService;
+    private final LoginAttemptTracker loginAttemptTracker;
 
     private final long refreshExpirationMs;
     private final long refreshRememberExpirationMs;
@@ -68,6 +70,7 @@ public class AuthService {
                        UserMapper userMapper,
                        AccountService accountService,
                        OtpService otpService,
+                       LoginAttemptTracker loginAttemptTracker,
                        @Value("${app.jwt.refresh-expiration-ms}") long refreshExpirationMs,
                        @Value("${app.jwt.refresh-expiration-remember-ms}") long refreshRememberExpirationMs) {
         this.userRepository = userRepository;
@@ -79,6 +82,7 @@ public class AuthService {
         this.userMapper = userMapper;
         this.accountService = accountService;
         this.otpService = otpService;
+        this.loginAttemptTracker = loginAttemptTracker;
         this.refreshExpirationMs = refreshExpirationMs;
         this.refreshRememberExpirationMs = refreshRememberExpirationMs;
     }
@@ -118,11 +122,21 @@ public class AuthService {
     @Transactional
     public AuthResponse login(LoginRequest request) {
         String identifier = IdentifierUtils.normalizeIdentifier(request.identifier());
+        loginAttemptTracker.checkNotLocked(identifier);
 
-        // Sai mật khẩu / không tồn tại -> BadCredentialsException (401)
+        // Sai mật khẩu / không tồn tại -> 401 kèm số lần còn được thử
         // Bị khóa / chưa kích hoạt -> LockedException / DisabledException (403)
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(identifier, request.password()));
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(identifier, request.password()));
+        } catch (BadCredentialsException ex) {
+            int remaining = loginAttemptTracker.recordFailure(identifier);
+            throw new UnauthorizedException(remaining > 0
+                    ? "Tài khoản hoặc mật khẩu không đúng (còn " + remaining + " lần thử)"
+                    : "Bạn đã nhập sai mật khẩu quá nhiều lần, vui lòng thử lại sau 15 phút");
+        }
+        loginAttemptTracker.reset(identifier);
 
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
         User user = userRepository.findById(principal.getId())
