@@ -11,17 +11,14 @@ Thumbs.db
 .vscode/
 
 # Backend (Maven / Spring)
-back_end/target/
-back_end/.classpath
-back_end/.project
-back_end/.settings/
+target/
+.classpath
+.project
+.settings/
 
 # Local overrides (password DB, v.v.)
-back_end/src/main/resources/application-local.properties
+src/main/resources/application-local.properties
 
-# Frontend build (khi có)
-font_end/node_modules/
-font_end/dist/
 
 # Cursor / tooling logs
 .github/modernize/

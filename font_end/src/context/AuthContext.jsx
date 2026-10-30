@@ -1,8 +1,13 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
-import { loginApi } from '../api/auth'
-import { clearStoredToken, getStoredToken } from '../api/client'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import toast from 'react-hot-toast'
+import { loginApi, logoutApi } from '../api/auth'
+import { SESSION_EXPIRED_EVENT, clearStoredToken, getStoredToken } from '../api/client'
 
 const USER_KEY = 'smartbanking_user'
+
+// Không thao tác (chuột, phím, chạm, cuộn) quá lâu thì tự đăng xuất, như ứng dụng ngân hàng thật
+const IDLE_TIMEOUT_MS = 10 * 60 * 1000
+const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll']
 
 const AuthContext = createContext(null)
 
@@ -46,12 +51,47 @@ export function AuthProvider({ children }) {
 
   const isAdmin = Boolean(user?.role === 'ADMIN')
 
-  const logout = useCallback(() => {
+  // Xóa phiên phía trình duyệt (không gọi server)
+  const clearSession = useCallback(() => {
     setUser(null)
     clearStoredToken()
     localStorage.removeItem(USER_KEY)
     sessionStorage.removeItem(USER_KEY)
   }, [])
+
+  const logout = useCallback(() => {
+    logoutApi() // đọc refresh token ngay lập tức, nên xóa phiên ngay sau đó vẫn an toàn
+    clearSession()
+  }, [clearSession])
+
+  // Refresh token hết hạn / bị thu hồi (vd: đổi mật khẩu ở thiết bị khác) -> về trang đăng nhập
+  useEffect(() => {
+    function onExpired() {
+      clearSession()
+      toast.error('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại')
+    }
+    window.addEventListener(SESSION_EXPIRED_EVENT, onExpired)
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired)
+  }, [clearSession])
+
+  // Tự đăng xuất khi không thao tác
+  useEffect(() => {
+    if (!user) return undefined
+    let timer
+    const reset = () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        logout()
+        toast('Bạn đã được đăng xuất do không thao tác trong 10 phút', { icon: '🔒' })
+      }, IDLE_TIMEOUT_MS)
+    }
+    reset()
+    ACTIVITY_EVENTS.forEach((e) => window.addEventListener(e, reset, { passive: true }))
+    return () => {
+      clearTimeout(timer)
+      ACTIVITY_EVENTS.forEach((e) => window.removeEventListener(e, reset))
+    }
+  }, [user, logout])
 
   const login = useCallback(async (credentials, asAdmin = false) => {
     const data = await loginApi({
@@ -61,6 +101,7 @@ export function AuthProvider({ children }) {
     })
     const mapped = mapUserFromApi(data.user)
     if (asAdmin && mapped.role !== 'ADMIN') {
+      logoutApi()
       clearStoredToken()
       throw new Error('Tài khoản không có quyền quản trị')
     }

@@ -240,6 +240,23 @@ class TransactionServiceTest {
         assertThat(account.getBalance()).isEqualByComparingTo("100000000");
     }
 
+    @Test
+    @DisplayName("Đã ra 180 triệu trong ngày thì rút thêm 30 triệu vượt hạn mức 200 triệu/ngày bị từ chối")
+    void withdraw_dailyLimitExceeded() {
+        Account account = account(1L, owner, "1111111111111111", "VND", "500000000");
+        when(accountRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(account));
+        when(transactionRepository.sumOutgoingSince(eq(1L), any())).thenReturn(new BigDecimal("180000000"));
+
+        assertThatThrownBy(() -> service.withdraw(USER_ID,
+                new WithdrawRequest(1L, new BigDecimal("30000000"), PaymentMethod.BANK_TRANSFER)))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("hạn mức")
+                .hasMessageContaining("20000000");
+
+        assertThat(account.getBalance()).isEqualByComparingTo("500000000");
+        verify(transactionRepository, never()).save(any());
+    }
+
     // ===================== CHUYỂN TIỀN =====================
 
     @Test
@@ -394,7 +411,7 @@ class TransactionServiceTest {
 
         assertThatThrownBy(() -> service.transfer(USER_ID, transfer(from, to, "100000")))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("tiền tệ khác nhau");
+                .hasMessageContaining("cùng loại tiền tệ");
 
         assertThat(from.getBalance()).isEqualByComparingTo("5000000");
         assertThat(to.getBalance()).isEqualByComparingTo("0");

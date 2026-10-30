@@ -13,8 +13,8 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:mysql://${HOST_MYSQL_HOST:-host.docker.internal}:${HOST_MYSQL_PORT:-3306}/smart_banking?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${HOST_MYSQL_USER:-root}
-      SPRING_DATASOURCE_PASSWORD: ${HOST_MYSQL_PASSWORD:-31082002}
-      JWT_SECRET: ${JWT_SECRET:-doi-chuoi-nay-thanh-mot-chuoi-ngau-nhien-dai-it-nhat-32-ky-tu}
+      SPRING_DATASOURCE_PASSWORD: ${HOST_MYSQL_PASSWORD:?Hay dat HOST_MYSQL_PASSWORD trong file .env}
+      JWT_SECRET: ${JWT_SECRET:?Hay dat JWT_SECRET trong file .env}
       APP_FE_BASE_URL: ${APP_FE_BASE_URL:-http://localhost:5500}
     extra_hosts:
       - "host.docker.internal:host-gateway"

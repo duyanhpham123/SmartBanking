@@ -29,8 +29,8 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smart_banking?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${MYSQL_DB_USER:-root}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-31082002}
-      JWT_SECRET: ${JWT_SECRET:-doi-chuoi-nay-thanh-mot-chuoi-ngau-nhien-dai-it-nhat-32-ky-tu}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-smartbanking}
+      JWT_SECRET: ${JWT_SECRET:?Hay dat JWT_SECRET trong file .env}
       APP_FE_BASE_URL: ${APP_FE_BASE_URL:-http://localhost:5500}
     depends_on:
       mysql:

@@ -61,6 +61,10 @@ public class TransactionService {
     private static final BigDecimal MIN_PAYMENT_VND = new BigDecimal("1000");
     private static final BigDecimal MAX_PAYMENT_VND = new BigDecimal("50000000");
 
+    // Hạn mức tổng tiền ra (rút + chuyển + thanh toán) mỗi ngày trên một tài khoản
+    private static final BigDecimal DAILY_OUT_LIMIT_VND = new BigDecimal("200000000");
+    private static final BigDecimal DAILY_OUT_LIMIT_USD = new BigDecimal("20000");
+
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final TransactionMapper transactionMapper;
@@ -121,6 +125,7 @@ public class TransactionService {
         if (account.getAvailableBalance().compareTo(amount) < 0) {
             throw new InsufficientBalanceException();
         }
+        checkDailyLimit(account, amount);
 
         account.setBalance(account.getBalance().subtract(amount));
         account.setAvailableBalance(account.getAvailableBalance().subtract(amount));
@@ -179,7 +184,7 @@ public class TransactionService {
         }
 
         if (!lockedFromAccount.getCurrency().equals(lockedToAccount.getCurrency())) {
-            throw new BadRequestException("Chuyển khoản chỉ hỗ trợ cùng loại tiền tệ khác nhau");
+            throw new BadRequestException("Chỉ chuyển khoản được giữa hai tài khoản cùng loại tiền tệ");
         }
 
         BigDecimal amount = normalizeAmount(request.amount(), lockedFromAccount.getCurrency(),
@@ -188,6 +193,7 @@ public class TransactionService {
         if (lockedFromAccount.getAvailableBalance().compareTo(amount) < 0) {
             throw new InsufficientBalanceException();
         }
+        checkDailyLimit(lockedFromAccount, amount);
 
         lockedFromAccount.setBalance(lockedFromAccount.getBalance().subtract(amount));
         lockedFromAccount.setAvailableBalance(lockedFromAccount.getAvailableBalance().subtract(amount));
@@ -248,6 +254,22 @@ public class TransactionService {
         return amount.setScale(2, RoundingMode.UNNECESSARY);
     }
 
+    // Gọi khi tài khoản nguồn đã bị khóa dòng (FOR UPDATE), nên các giao dịch song song
+    // trên cùng tài khoản phải xếp hàng và tổng trong ngày luôn chính xác.
+    private void checkDailyLimit(Account account, BigDecimal amount) {
+        BigDecimal limit = "USD".equals(account.getCurrency()) ? DAILY_OUT_LIMIT_USD : DAILY_OUT_LIMIT_VND;
+        BigDecimal usedToday = transactionRepository.sumOutgoingSince(
+                account.getId(), LocalDate.now().atStartOfDay());
+        if (usedToday == null) {
+            usedToday = BigDecimal.ZERO;
+        }
+        if (usedToday.add(amount).compareTo(limit) > 0) {
+            BigDecimal remaining = limit.subtract(usedToday).max(BigDecimal.ZERO);
+            throw new BadRequestException("Vượt hạn mức giao dịch trong ngày. Hạn mức còn lại: "
+                    + remaining.stripTrailingZeros().toPlainString() + " " + account.getCurrency());
+        }
+    }
+
     private void checkRange(BigDecimal amount, BigDecimal min, BigDecimal max, String currency, String action) {
         if (amount.compareTo(min) < 0) {
             throw new BadRequestException("Số tiền " + action + " tối thiểu là " + min.toPlainString() + " " + currency);
@@ -297,6 +319,7 @@ public class TransactionService {
         if (account.getAvailableBalance().compareTo(amount) < 0) {
             throw new InsufficientBalanceException();
         }
+        checkDailyLimit(account, amount);
 
         account.setBalance(account.getBalance().subtract(amount));
         account.setAvailableBalance(account.getAvailableBalance().subtract(amount));

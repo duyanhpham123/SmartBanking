@@ -69,7 +69,7 @@ class AuthServiceTest {
     void setUp() {
         service = new AuthService(userRepository, roleRepository, refreshTokenRepository, passwordEncoder,
                 authenticationManager, jwtService, new UserMapper(), accountService, otpService,
-                604_800_000L, 2_592_000_000L);
+                new LoginAttemptTracker(), 604_800_000L, 2_592_000_000L);
 
         Role userRole = new Role();
         userRole.setId(1L);
@@ -78,6 +78,27 @@ class AuthServiceTest {
         when(passwordEncoder.encode(anyString())).thenAnswer(inv -> "ENC(" + inv.getArgument(0) + ")");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(inv -> inv.getArgument(0));
+    }
+
+    // ===================== ĐĂNG NHẬP: CHỐNG DÒ MẬT KHẨU =====================
+
+    @Test
+    @DisplayName("Sai mật khẩu 5 lần thì khóa đăng nhập, lần thứ 6 không gọi tới AuthenticationManager")
+    void login_lockedAfterTooManyFailures() {
+        when(authenticationManager.authenticate(any()))
+                .thenThrow(new org.springframework.security.authentication.BadCredentialsException("bad"));
+        var request = new project.smartbanking.dto.request.LoginRequest("a@example.com", "wrong", false);
+
+        for (int i = 4; i >= 1; i--) {
+            assertThatThrownBy(() -> service.login(request))
+                    .isInstanceOf(UnauthorizedException.class)
+                    .hasMessageContaining("còn " + i + " lần");
+        }
+        assertThatThrownBy(() -> service.login(request)).isInstanceOf(UnauthorizedException.class);
+
+        assertThatThrownBy(() -> service.login(request))
+                .isInstanceOf(project.smartbanking.exception.TooManyRequestsException.class);
+        verify(authenticationManager, org.mockito.Mockito.times(5)).authenticate(any());
     }
 
     // ===================== ĐĂNG KÝ =====================

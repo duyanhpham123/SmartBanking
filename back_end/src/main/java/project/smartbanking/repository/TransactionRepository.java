@@ -60,6 +60,16 @@ public interface TransactionRepository extends JpaRepository<BankTransaction, Lo
                                     @Param("keyword") String keyword,
                                     Pageable pageable);
 
+    // ===== Hạn mức ngày: tổng tiền đã ra khỏi một tài khoản (rút, chuyển, thanh toán) từ fromDate =====
+    @Query("""
+            select coalesce(sum(t.amount), 0) from BankTransaction t
+            where t.fromAccount.id = :accountId
+              and t.status = project.smartbanking.model.enums.TransactionStatus.SUCCESS
+              and t.createdAt >= :fromDate
+            """)
+    BigDecimal sumOutgoingSince(@Param("accountId") Long accountId,
+                                @Param("fromDate") LocalDateTime fromDate);
+
     // ===== Dashboard người dùng =====
 
     // "Giao dịch tháng này"
