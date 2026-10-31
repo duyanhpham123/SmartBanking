@@ -82,3 +82,13 @@ export async function fetchAdminAuditLogs({ keyword, page = 0, size = 20 } = {})
   })
   return data
 }
+
+export async function fetchAdminLimits() {
+  const { data } = await apiClient.get('/admin/limits')
+  return data
+}
+
+export async function updateAdminLimit(currency, dailyOutLimit) {
+  const { data } = await apiClient.put(`/admin/limits/${currency}`, { dailyOutLimit })
+  return data
+}

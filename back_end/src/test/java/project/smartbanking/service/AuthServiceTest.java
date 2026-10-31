@@ -69,7 +69,7 @@ class AuthServiceTest {
     void setUp() {
         service = new AuthService(userRepository, roleRepository, refreshTokenRepository, passwordEncoder,
                 authenticationManager, jwtService, new UserMapper(), accountService, otpService,
-                new LoginAttemptTracker(), 604_800_000L, 2_592_000_000L);
+                new LoginAttemptTracker(InMemoryAttemptLimiter.create()), 604_800_000L, 2_592_000_000L);
 
         Role userRole = new Role();
         userRole.setId(1L);

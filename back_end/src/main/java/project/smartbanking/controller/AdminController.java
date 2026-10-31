@@ -1,6 +1,7 @@
 package project.smartbanking.controller;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import project.smartbanking.dto.request.RejectKycRequest;
+import project.smartbanking.dto.request.UpdateTransactionLimitRequest;
 import project.smartbanking.dto.response.AdminAccountResponse;
 import project.smartbanking.dto.response.AdminTransactionResponse;
 import project.smartbanking.dto.response.AdminUserDetailResponse;
 import project.smartbanking.dto.response.CustomerProfileResponse;
 import project.smartbanking.dto.response.PageResponse;
+import project.smartbanking.dto.response.TransactionLimitResponse;
 import project.smartbanking.dto.response.UserResponse;
 import project.smartbanking.model.enums.AccountStatus;
 import project.smartbanking.model.enums.AccountType;
@@ -31,6 +34,7 @@ import project.smartbanking.model.enums.UserStatus;
 import project.smartbanking.security.UserPrincipal;
 import project.smartbanking.service.AdminService;
 import project.smartbanking.service.CustomerProfileService;
+import project.smartbanking.service.TransactionLimitService;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -39,10 +43,13 @@ public class AdminController {
 
     private final AdminService adminService;
     private final CustomerProfileService customerProfileService;
+    private final TransactionLimitService limitService;
 
-    public AdminController(AdminService adminService, CustomerProfileService customerProfileService) {
+    public AdminController(AdminService adminService, CustomerProfileService customerProfileService,
+                           TransactionLimitService limitService) {
         this.adminService = adminService;
         this.customerProfileService = customerProfileService;
+        this.limitService = limitService;
     }
 
     // ===================== NGƯỜI DÙNG =====================
@@ -130,5 +137,18 @@ public class AdminController {
     @GetMapping("/transactions/{id}")
     public ResponseEntity<AdminTransactionResponse> getTransaction(@PathVariable Long id) {
         return ResponseEntity.ok(adminService.getTransaction(id));
+    }
+
+    // ===================== HẠN MỨC GIAO DỊCH =====================
+    @GetMapping("/limits")
+    public ResponseEntity<List<TransactionLimitResponse>> getLimits() {
+        return ResponseEntity.ok(limitService.getAll());
+    }
+
+    @PutMapping("/limits/{currency}")
+    public ResponseEntity<TransactionLimitResponse> updateLimit(@AuthenticationPrincipal UserPrincipal principal,
+                                                                @PathVariable String currency,
+                                                                @Valid @RequestBody UpdateTransactionLimitRequest request) {
+        return ResponseEntity.ok(limitService.update(principal.getId(), currency, request.dailyOutLimit()));
     }
 }

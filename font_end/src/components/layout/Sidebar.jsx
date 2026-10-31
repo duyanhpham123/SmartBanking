@@ -31,6 +31,7 @@ const adminLinks = [
   { to: '/admin/accounts', icon: FiCreditCard, label: 'Quản lý tài khoản' },
   { to: '/admin/transactions', icon: FiRepeat, label: 'Quản lý giao dịch' },
   { to: '/admin/stats', icon: FiClock, label: 'Thống kê' },
+  { to: '/admin/audit-logs', icon: FiFileText, label: 'Nhật ký hệ thống' },
   { to: '/admin/settings', icon: FiSettings, label: 'Cài đặt hệ thống' },
 ]
 

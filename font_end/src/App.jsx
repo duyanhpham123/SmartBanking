@@ -20,6 +20,7 @@ import {
   AdminAuditLogsPage,
   AdminDashboardPage,
   AdminLayout,
+  AdminSettingsPage,
   AdminStatsPage,
   AdminTransactionsPage,
   AdminUserDetailPage,
@@ -59,7 +60,8 @@ function App() {
               <Route path="accounts" element={<AdminAccountsPage />} />
               <Route path="transactions" element={<AdminTransactionsPage />} />
               <Route path="stats" element={<AdminStatsPage />} />
-              <Route path="settings" element={<AdminAuditLogsPage />} />
+              <Route path="audit-logs" element={<AdminAuditLogsPage />} />
+              <Route path="settings" element={<AdminSettingsPage />} />
             </Route>
           </Route>
 

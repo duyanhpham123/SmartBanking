@@ -61,26 +61,26 @@ public class TransactionService {
     private static final BigDecimal MIN_PAYMENT_VND = new BigDecimal("1000");
     private static final BigDecimal MAX_PAYMENT_VND = new BigDecimal("50000000");
 
-    // Hạn mức tổng tiền ra (rút + chuyển + thanh toán) mỗi ngày trên một tài khoản
-    private static final BigDecimal DAILY_OUT_LIMIT_VND = new BigDecimal("200000000");
-    private static final BigDecimal DAILY_OUT_LIMIT_USD = new BigDecimal("20000");
-
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final TransactionMapper transactionMapper;
     private final ApplicationEventPublisher eventPublisher;
     private final OtpService otpService;
+    // Hạn mức tổng tiền ra (rút + chuyển + thanh toán) mỗi ngày: admin chỉnh trên trang quản trị
+    private final TransactionLimitService limitService;
 
     public TransactionService(AccountRepository accountRepository,
             TransactionRepository transactionRepository,
             TransactionMapper transactionMapper,
             ApplicationEventPublisher eventPublisher,
-            OtpService otpService) {
+            OtpService otpService,
+            TransactionLimitService limitService) {
         this.accountRepository = accountRepository;
         this.transactionRepository = transactionRepository;
         this.transactionMapper = transactionMapper;
         this.eventPublisher = eventPublisher;
         this.otpService = otpService;
+        this.limitService = limitService;
     }
 
     // ===================== NẠP TIỀN =====================
@@ -257,7 +257,7 @@ public class TransactionService {
     // Gọi khi tài khoản nguồn đã bị khóa dòng (FOR UPDATE), nên các giao dịch song song
     // trên cùng tài khoản phải xếp hàng và tổng trong ngày luôn chính xác.
     private void checkDailyLimit(Account account, BigDecimal amount) {
-        BigDecimal limit = "USD".equals(account.getCurrency()) ? DAILY_OUT_LIMIT_USD : DAILY_OUT_LIMIT_VND;
+        BigDecimal limit = limitService.getDailyOutLimit(account.getCurrency());
         BigDecimal usedToday = transactionRepository.sumOutgoingSince(
                 account.getId(), LocalDate.now().atStartOfDay());
         if (usedToday == null) {

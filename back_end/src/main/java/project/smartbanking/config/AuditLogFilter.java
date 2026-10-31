@@ -68,7 +68,8 @@ public class AuditLogFilter extends OncePerRequestFilter {
             Rule.of("PUT", "^/api/v1/admin/users/(\\d+)/kyc/verify$", "ADMIN_VERIFY_KYC", "USER", "Duyệt hồ sơ định danh"),
             Rule.of("PUT", "^/api/v1/admin/users/(\\d+)/kyc/reject$", "ADMIN_REJECT_KYC", "USER", "Từ chối hồ sơ định danh"),
             Rule.of("PUT", "^/api/v1/admin/accounts/(\\d+)/lock$", "ADMIN_LOCK_ACCOUNT", "ACCOUNT", "Khóa tài khoản ngân hàng"),
-            Rule.of("PUT", "^/api/v1/admin/accounts/(\\d+)/unlock$", "ADMIN_UNLOCK_ACCOUNT", "ACCOUNT", "Mở khóa tài khoản ngân hàng"));
+            Rule.of("PUT", "^/api/v1/admin/accounts/(\\d+)/unlock$", "ADMIN_UNLOCK_ACCOUNT", "ACCOUNT", "Mở khóa tài khoản ngân hàng"),
+            Rule.of("PUT", "^/api/v1/admin/limits/([A-Za-z]{3})$", "ADMIN_UPDATE_LIMIT", "LIMIT", "Đổi hạn mức giao dịch ngày"));
 
     private final AuditLogService auditLogService;
     private final ObjectMapper objectMapper;

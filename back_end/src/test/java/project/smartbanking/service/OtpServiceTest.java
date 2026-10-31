@@ -49,7 +49,7 @@ class OtpServiceTest {
     @BeforeEach
     void setUp() {
         // Mỗi test dùng bộ đếm nhập sai mới để các test không ảnh hưởng nhau
-        service = new OtpService(otpCodeRepository, userRepository, new OtpAttemptTracker(), 300L, true);
+        service = new OtpService(otpCodeRepository, userRepository, new OtpAttemptTracker(InMemoryAttemptLimiter.create()), 300L, true);
     }
 
     // ===================== GỬI OTP =====================
@@ -78,7 +78,7 @@ class OtpServiceTest {
     @Test
     @DisplayName("Khi tắt chế độ phát triển thì không trả mã OTP trong kết quả")
     void send_hidesCodeWhenNotExposed() {
-        OtpService production = new OtpService(otpCodeRepository, userRepository, new OtpAttemptTracker(), 300L, false);
+        OtpService production = new OtpService(otpCodeRepository, userRepository, new OtpAttemptTracker(InMemoryAttemptLimiter.create()), 300L, false);
 
         OtpSendResponse response = production.send(USER_ID, OtpPurpose.TRANSFER);
 

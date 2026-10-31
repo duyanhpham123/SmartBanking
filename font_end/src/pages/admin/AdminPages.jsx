@@ -28,6 +28,7 @@ export { AdminAccountsPage } from './AdminAccountsPage'
 export { AdminTransactionsPage } from './AdminTransactionsPage'
 export { AdminStatsPage } from './AdminStatsPage'
 export { AdminAuditLogsPage } from './AdminAuditLogsPage'
+export { AdminSettingsPage } from './AdminSettingsPage'
 
 export function AdminLayout() {
   const { logout } = useAuth()

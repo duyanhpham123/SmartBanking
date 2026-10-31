@@ -40,6 +40,7 @@ import project.smartbanking.exception.ResourceNotFoundException;
 import project.smartbanking.mapper.TransactionMapper;
 import project.smartbanking.model.Account;
 import project.smartbanking.model.BankTransaction;
+import project.smartbanking.model.TransactionLimit;
 import project.smartbanking.model.User;
 import project.smartbanking.model.enums.AccountStatus;
 import project.smartbanking.model.enums.BillProvider;
@@ -49,7 +50,9 @@ import project.smartbanking.model.enums.TransactionDirection;
 import project.smartbanking.model.enums.TransactionStatus;
 import project.smartbanking.model.enums.TransactionType;
 import project.smartbanking.repository.AccountRepository;
+import project.smartbanking.repository.TransactionLimitRepository;
 import project.smartbanking.repository.TransactionRepository;
+import project.smartbanking.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -62,6 +65,8 @@ class TransactionServiceTest {
     @Mock private TransactionRepository transactionRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
     @Mock private OtpService otpService;
+    @Mock private TransactionLimitRepository limitRepository;
+    @Mock private UserRepository userRepository;
 
     private TransactionService service;
     private User owner;
@@ -69,8 +74,10 @@ class TransactionServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Hạn mức thật, chưa có dòng nào trong DB -> dùng mặc định (200 triệu VND / 20.000 USD)
         service = new TransactionService(accountRepository, transactionRepository,
-                new TransactionMapper(), eventPublisher, otpService);
+                new TransactionMapper(), eventPublisher, otpService,
+                new TransactionLimitService(limitRepository, userRepository));
         // save() trả lại chính đối tượng được lưu, giống hành vi thật
         when(transactionRepository.save(any(BankTransaction.class))).thenAnswer(inv -> inv.getArgument(0));
         when(accountRepository.save(any(Account.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -254,6 +261,25 @@ class TransactionServiceTest {
                 .hasMessageContaining("20000000");
 
         assertThat(account.getBalance()).isEqualByComparingTo("500000000");
+        verify(transactionRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Admin hạ hạn mức ngày xuống 50 triệu thì đã ra 40 triệu, rút thêm 20 triệu bị từ chối")
+    void withdraw_adminConfiguredDailyLimit() {
+        TransactionLimit limit = new TransactionLimit();
+        limit.setCurrency("VND");
+        limit.setDailyOutLimit(new BigDecimal("50000000"));
+        when(limitRepository.findById("VND")).thenReturn(Optional.of(limit));
+        Account account = account(1L, owner, "1111111111111111", "VND", "500000000");
+        when(accountRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(account));
+        when(transactionRepository.sumOutgoingSince(eq(1L), any())).thenReturn(new BigDecimal("40000000"));
+
+        assertThatThrownBy(() -> service.withdraw(USER_ID,
+                new WithdrawRequest(1L, new BigDecimal("20000000"), PaymentMethod.BANK_TRANSFER)))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("10000000");
+
         verify(transactionRepository, never()).save(any());
     }
 

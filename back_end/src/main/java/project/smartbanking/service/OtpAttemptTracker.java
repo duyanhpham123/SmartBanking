@@ -1,66 +1,42 @@
 package project.smartbanking.service;
 
 import java.time.Duration;
-import java.time.Instant;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Component;
 
 import project.smartbanking.exception.TooManyRequestsException;
 import project.smartbanking.model.enums.OtpPurpose;
 
-// Đếm số lần nhập sai OTP trong bộ nhớ. Tắt ứng dụng thì đếm lại từ đầu.
+// Chống đoán OTP: sai 5 lần trong 15 phút thì khóa 15 phút (theo người dùng và mục đích).
+// Bộ đếm lưu trong database (bảng attempt_counters), không mất khi restart và dùng chung giữa các server.
 @Component
 public class OtpAttemptTracker {
 
-    private static final int MAX_FAILURES = 5;
-    private static final Duration WINDOW = Duration.ofMinutes(15);
-    private static final Duration LOCK = Duration.ofMinutes(15);
+    private static final AttemptLimiter.Policy POLICY =
+            new AttemptLimiter.Policy(5, Duration.ofMinutes(15), Duration.ofMinutes(15));
 
-    private static class State {
-        int failures;
-        Instant windowStart;
-        Instant lockedUntil;
+    private final AttemptLimiter limiter;
+
+    public OtpAttemptTracker(AttemptLimiter limiter) {
+        this.limiter = limiter;
     }
 
-    private final ConcurrentHashMap<String, State> states = new ConcurrentHashMap<>();
-
     public void checkNotLocked(Long userId, OtpPurpose purpose) {
-        State s = states.get(key(userId, purpose));
-        if (s == null) {
-            return;
-        }
-        Instant now = Instant.now();
-        synchronized (s) {
-            if (s.lockedUntil != null && now.isBefore(s.lockedUntil)) {
-                long minutes = Duration.between(now, s.lockedUntil).toMinutes() + 1;
-                throw new TooManyRequestsException(
-                        "Bạn đã nhập sai OTP quá nhiều lần, vui lòng thử lại sau " + minutes + " phút");
-            }
-        }
+        limiter.lockRemaining(key(userId, purpose)).ifPresent(remaining -> {
+            throw new TooManyRequestsException("Bạn đã nhập sai OTP quá nhiều lần, vui lòng thử lại sau "
+                    + (remaining.toMinutes() + 1) + " phút");
+        });
     }
 
     public void recordFailure(Long userId, OtpPurpose purpose) {
-        Instant now = Instant.now();
-        State s = states.computeIfAbsent(key(userId, purpose), k -> new State());
-        synchronized (s) {
-            if (s.windowStart == null || now.isAfter(s.windowStart.plus(WINDOW))) {
-                s.failures = 0;
-                s.windowStart = now;
-                s.lockedUntil = null;
-            }
-            s.failures++;
-            if (s.failures >= MAX_FAILURES) {
-                s.lockedUntil = now.plus(LOCK);
-            }
-        }
+        limiter.recordFailure(key(userId, purpose), POLICY);
     }
 
     public void reset(Long userId, OtpPurpose purpose) {
-        states.remove(key(userId, purpose));
+        limiter.reset(key(userId, purpose));
     }
 
     private String key(Long userId, OtpPurpose purpose) {
-        return userId + ":" + purpose;
+        return "OTP:" + userId + ":" + purpose;
     }
 }
